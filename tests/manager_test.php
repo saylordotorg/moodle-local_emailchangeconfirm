@@ -112,12 +112,12 @@ final class manager_test extends \advanced_testcase {
         set_config('max_attempts', 10, 'local_emailchangeconfirm');
         [$user, $request] = $this->make_request();
 
-        $previous = manager::get_pending_request($user->id)->attemptsleft;
+        $previous = (int) manager::get_pending_request($user->id)->attemptsleft;
         $this->assertSame(10, $previous);
 
         for ($i = 0; $i < 5; $i++) {
             manager::validate_token($user->id, 'wrongtoken' . str_repeat('0', 30));
-            $current = manager::get_pending_request($user->id)->attemptsleft;
+            $current = (int) manager::get_pending_request($user->id)->attemptsleft;
             $this->assertSame($previous - 1, $current,
                 'Each failed attempt must decrement attemptsleft by exactly 1.');
             $previous = $current;

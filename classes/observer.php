@@ -44,7 +44,7 @@ class observer {
             return;
         }
 
-        // ---- Completion detection (do this first; independent of plugin enabled flag). ----
+        // Completion detection runs first and is independent of the enabled flag.
         $verified = $DB->get_record(manager::TABLE, ['userid' => $userid, 'status' => 'verified']);
         if ($verified) {
             $user = $DB->get_record('user', ['id' => $userid], 'id, email', IGNORE_MISSING);
@@ -60,7 +60,7 @@ class observer {
             return;
         }
 
-        // ---- Interception. ----
+        // Interception path begins here.
         if (empty($CFG->emailchangeconfirmation)) {
             return;
         }

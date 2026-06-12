@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Custom uninstall steps.
  *
@@ -39,11 +37,7 @@ function xmldb_local_emailchangeconfirm_uninstall() {
     // Delete all plugin user preferences.
     $DB->delete_records('user_preferences', ['name' => 'emailchangeconfirm_pending']);
 
-    // Delete all user keys created with our script identifier.
-    // NOTE: the plugin re-uses the core 'core_user/email_change' script to resume the
-    // core flow, so we only remove keys we can attribute to ourselves is not reliable.
-    // We therefore key cleanup on our own dedicated marker preference deletion above.
-    // If a dedicated script identifier is later adopted, delete those keys here:
+    // Delete all user keys created with the plugin's dedicated script identifier.
     $DB->delete_records('user_private_key', ['script' => 'local_emailchangeconfirm']);
 
     return true;

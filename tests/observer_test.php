@@ -115,10 +115,11 @@ final class observer_test extends \advanced_testcase {
         // Simulate core completing the change: email is now the new address.
         $DB->set_field('user', 'email', 'new@example.com', ['id' => $user->id]);
 
+        // Invoke the observer directly. A redirected event sink suppresses observer
+        // execution, so we call the handler and capture the events it fires.
         $sink = $this->redirectEvents();
-        $freshuser = $DB->get_record('user', ['id' => $user->id]);
         $event = \core\event\user_updated::create_from_userid($user->id);
-        $event->trigger();
+        observer::user_updated($event);
 
         $events = $sink->get_events();
         $sink->close();
