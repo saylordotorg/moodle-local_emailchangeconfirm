@@ -16,8 +16,6 @@
 
 namespace local_emailchangeconfirm;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Integration tests for the observer and the full email-change flow.
  *
@@ -27,7 +25,6 @@ defined('MOODLE_INTERNAL') || die();
  * @covers     \local_emailchangeconfirm\observer
  */
 final class observer_test extends \advanced_testcase {
-
     /**
      * Enable the plugin and core confirmation before each test.
      *

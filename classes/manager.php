@@ -16,8 +16,6 @@
 
 namespace local_emailchangeconfirm;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Central business logic for the email change confirmation plugin.
  *
@@ -26,7 +24,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class manager {
-
     /** @var string Database table for requests. */
     const TABLE = 'local_emailchangeconfirm_requests';
 
@@ -272,7 +269,7 @@ class manager {
         $a->sitename = format_string($CFG->wwwroot);
 
         $supportuser = \core_user::get_support_user();
-        $subject = get_string('auth_emailupdatemessage', 'auth', $a);
+        $subject = get_string('emailupdate', 'auth');
         // Fall back to the changing-address message body used by core.
         $messagebody = get_string('auth_changingemailaddress', 'auth', $a) . "\n\n" . $a->link;
 

@@ -16,8 +16,6 @@
 
 namespace local_emailchangeconfirm\task;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Scheduled task to clean up expired email change requests.
  *
@@ -26,7 +24,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class cleanup_expired extends \core\task\scheduled_task {
-
     /**
      * Return the task name.
      *

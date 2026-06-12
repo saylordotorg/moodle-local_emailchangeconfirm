@@ -16,8 +16,6 @@
 
 namespace local_emailchangeconfirm\admin;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * An admin text setting that validates an integer is within an inclusive range.
  *
@@ -26,7 +24,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class setting_configint_range extends \admin_setting_configtext {
-
     /** @var int Minimum allowed value (inclusive). */
     protected $min;
 

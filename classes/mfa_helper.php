@@ -16,8 +16,6 @@
 
 namespace local_emailchangeconfirm;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Optional MFA re-authentication integration for local_emailchangeconfirm.
  *
@@ -26,7 +24,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mfa_helper {
-
     /**
      * Whether MFA re-authentication is required by plugin configuration.
      *

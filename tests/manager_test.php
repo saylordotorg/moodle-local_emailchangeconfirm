@@ -16,8 +16,6 @@
 
 namespace local_emailchangeconfirm;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Property-based and unit tests for the manager class.
  *
@@ -30,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
  * @covers     \local_emailchangeconfirm\manager
  */
 final class manager_test extends \advanced_testcase {
-
     /** @var int Number of generative iterations per property. */
     const ITERATIONS = 100;
 

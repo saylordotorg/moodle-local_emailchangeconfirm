@@ -16,23 +16,14 @@
 
 namespace local_emailchangeconfirm\event;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Event fired when an email change request is created.
  *
  * @package    local_emailchangeconfirm
  * @copyright  2026 Saylor Academy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- *
- * @property-read array $other {
- *      @type string oldemail The old email address.
- *      @type string newemail The requested new email address.
- *      @type string reason The audit reason.
- * }
  */
 class email_change_requested extends \core\event\base {
-
     /**
      * Initialise the event data.
      *

@@ -16,8 +16,6 @@
 
 namespace local_emailchangeconfirm\event;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Event fired when a token validation attempt fails.
  *
@@ -26,7 +24,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class token_validation_failed extends \core\event\base {
-
     /**
      * Initialise the event data.
      *

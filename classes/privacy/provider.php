@@ -23,8 +23,6 @@ use core_privacy\local\request\contextlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Privacy provider for local_emailchangeconfirm.
  *
@@ -36,7 +34,6 @@ class provider implements
     \core_privacy\local\metadata\provider,
     \core_privacy\local\request\plugin\provider,
     \core_privacy\local\request\core_userlist_provider {
-
     /** @var string Table name. */
     const TABLE = 'local_emailchangeconfirm_requests';
 
