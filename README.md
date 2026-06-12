@@ -1,5 +1,7 @@
 # Email Change Confirmation (local_emailchangeconfirm)
 
+[![Moodle Plugin CI](https://github.com/saylordotorg/moodle-local_emailchangeconfirm/actions/workflows/moodle-ci.yml/badge.svg?branch=main)](https://github.com/saylordotorg/moodle-local_emailchangeconfirm/actions/workflows/moodle-ci.yml)
+
 A Moodle 4.5 local plugin that adds **old-email verification** to the email change process.
 
 ## The problem
