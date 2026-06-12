@@ -170,8 +170,9 @@ final class observer_test extends \advanced_testcase {
 
         $sink = $this->redirectEvents();
         $request = manager::intercept_email_change($user->id, 'old@example.com', 'new@example.com');
-        manager::validate_token($user->id, 'wrong' . str_repeat('0', 35)); // token_validation_failed.
-        manager::mark_verified($request); // old_email_verified.
+        // Trigger a failed validation, then a successful verification.
+        manager::validate_token($user->id, 'wrong' . str_repeat('0', 35));
+        manager::mark_verified($request);
 
         $events = $sink->get_events();
         $sink->close();

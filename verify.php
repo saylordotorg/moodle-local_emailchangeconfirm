@@ -48,11 +48,12 @@ $returnurl = new moodle_url('/user/preferences.php', ['userid' => $USER->id]);
 /**
  * Render a single-message result page and exit.
  *
- * @param string $message The message body.
+ * @param string $stringid The language string identifier in local_emailchangeconfirm.
  * @param string $type One of success, error, info.
  */
-function local_emailchangeconfirm_show_result(string $message, string $type = 'info'): void {
+function local_emailchangeconfirm_show_result(string $stringid, string $type = 'info'): void {
     global $OUTPUT, $returnurl;
+    $message = get_string($stringid, 'local_emailchangeconfirm');
     echo $OUTPUT->header();
     $notifytype = ($type === 'success') ? \core\output\notification::NOTIFY_SUCCESS
         : (($type === 'error') ? \core\output\notification::NOTIFY_ERROR : \core\output\notification::NOTIFY_INFO);
@@ -68,19 +69,16 @@ if ($action === 'cancel') {
 
     $request = manager::get_pending_request($USER->id);
     if (!$request) {
-        local_emailchangeconfirm_show_result(
-            get_string('cancel_notfound', 'local_emailchangeconfirm'), 'info');
+        local_emailchangeconfirm_show_result('cancel_notfound', 'info');
     }
 
     // Ownership is implicit (we fetched by $USER->id), but guard explicitly.
     if ((int)$request->userid !== (int)$USER->id) {
-        local_emailchangeconfirm_show_result(
-            get_string('cancel_notauthorised', 'local_emailchangeconfirm'), 'error');
+        local_emailchangeconfirm_show_result('cancel_notauthorised', 'error');
     }
 
     manager::cancel_request($request->id, 'user_cancelled');
-    local_emailchangeconfirm_show_result(
-        get_string('cancel_success', 'local_emailchangeconfirm'), 'success');
+    local_emailchangeconfirm_show_result('cancel_success', 'success');
 }
 
 if ($action === 'resend') {
@@ -88,51 +86,43 @@ if ($action === 'resend') {
 
     $request = manager::get_pending_request($USER->id);
     if (!$request) {
-        local_emailchangeconfirm_show_result(
-            get_string('cancel_notfound', 'local_emailchangeconfirm'), 'info');
+        local_emailchangeconfirm_show_result('cancel_notfound', 'info');
     }
     // A new token is required to resend (the previous raw token is not recoverable).
     $token = manager::generate_token();
     $request->tokenhash = manager::hash_token($token);
     $DB->update_record(manager::TABLE, $request);
     manager::send_old_email_verification($request, $token);
-    local_emailchangeconfirm_show_result(
-        get_string('verify_resent', 'local_emailchangeconfirm'), 'success');
+    local_emailchangeconfirm_show_result('verify_resent', 'success');
 }
 
 // Default action: verify token.
 if ($targetid && (int)$targetid !== (int)$USER->id) {
     // The link was issued for a different user than the one logged in.
-    local_emailchangeconfirm_show_result(
-        get_string('verify_notauthorised', 'local_emailchangeconfirm'), 'error');
+    local_emailchangeconfirm_show_result('verify_notauthorised', 'error');
 }
 
 $request = manager::get_pending_request($USER->id);
 if (!$request) {
     // No pending request - either already handled or never existed.
-    local_emailchangeconfirm_show_result(
-        get_string('verify_notpending', 'local_emailchangeconfirm'), 'info');
+    local_emailchangeconfirm_show_result('verify_notpending', 'info');
 }
 
 if (time() > $request->timeexpires) {
     manager::mark_expired($request);
-    local_emailchangeconfirm_show_result(
-        get_string('verify_expired', 'local_emailchangeconfirm'), 'error');
+    local_emailchangeconfirm_show_result('verify_expired', 'error');
 }
 
 $verified = manager::validate_token($USER->id, $token);
 if ($verified) {
     manager::mark_verified($verified);
-    local_emailchangeconfirm_show_result(
-        get_string('verify_success', 'local_emailchangeconfirm'), 'success');
+    local_emailchangeconfirm_show_result('verify_success', 'success');
 } else {
     // Re-fetch to determine the failure mode after the attempt was processed.
     $after = manager::get_pending_request($USER->id);
     if (!$after) {
         // The request was cancelled (e.g. attempts exhausted) during validation.
-        local_emailchangeconfirm_show_result(
-            get_string('verify_maxattempts', 'local_emailchangeconfirm'), 'error');
+        local_emailchangeconfirm_show_result('verify_maxattempts', 'error');
     }
-    local_emailchangeconfirm_show_result(
-        get_string('verify_invalid', 'local_emailchangeconfirm'), 'error');
+    local_emailchangeconfirm_show_result('verify_invalid', 'error');
 }
