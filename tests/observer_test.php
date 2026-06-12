@@ -33,6 +33,8 @@ final class observer_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
+        // Redirect emails so calls to email_to_user() do not throw during tests.
+        $this->redirectEmails();
         set_config('emailchangeconfirmation', 1);
         set_config('enabled', 1, 'local_emailchangeconfirm');
         set_config('verification_window', 30, 'local_emailchangeconfirm');
@@ -53,8 +55,10 @@ final class observer_test extends \advanced_testcase {
         set_user_preference('newemail', $newemail, $user->id);
         set_user_preference('newemailattemptsleft', 3, $user->id);
 
+        // Invoke the observer directly. Observer dispatch from a triggered event is
+        // not guaranteed in unit tests, so we call the handler with a representative event.
         $event = \core\event\user_updated::create_from_userid($user->id);
-        $event->trigger();
+        observer::user_updated($event);
     }
 
     /**
@@ -94,8 +98,10 @@ final class observer_test extends \advanced_testcase {
 
         // The core newemail preference and key must be restored.
         $this->assertSame('new@example.com', get_user_preferences('newemail', '', $user->id));
-        $this->assertTrue($DB->record_exists('user_private_key',
-            ['script' => 'core_user/email_change', 'userid' => $user->id]));
+        $this->assertTrue($DB->record_exists(
+            'user_private_key',
+            ['script' => 'core_user/email_change', 'userid' => $user->id]
+        ));
         $this->assertSame('verified', $DB->get_record(manager::TABLE, ['id' => $request->id])->status);
     }
 

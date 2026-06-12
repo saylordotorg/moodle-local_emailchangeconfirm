@@ -39,6 +39,8 @@ final class manager_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
+        // Redirect emails so calls to email_to_user() do not throw during tests.
+        $this->redirectEmails();
         set_config('enabled', 1, 'local_emailchangeconfirm');
         set_config('verification_window', 30, 'local_emailchangeconfirm');
         set_config('max_attempts', 3, 'local_emailchangeconfirm');
@@ -68,8 +70,11 @@ final class manager_test extends \advanced_testcase {
         for ($i = 0; $i < self::ITERATIONS; $i++) {
             $token = manager::generate_token();
             $this->assertSame(40, strlen($token), 'Token length must be exactly 40.');
-            $this->assertMatchesRegularExpression('/^[a-zA-Z0-9]{40}$/', $token,
-                'Token must be alphanumeric.');
+            $this->assertMatchesRegularExpression(
+                '/^[a-zA-Z0-9]{40}$/',
+                $token,
+                'Token must be alphanumeric.'
+            );
         }
     }
 
@@ -86,8 +91,11 @@ final class manager_test extends \advanced_testcase {
             $newemail = 'new' . $i . '@example.com';
             manager::intercept_email_change($user->id, 'old@example.com', $newemail);
             $pending = $DB->count_records(manager::TABLE, ['userid' => $user->id, 'status' => 'pending']);
-            $this->assertLessThanOrEqual(1, $pending,
-                'There must never be more than one pending request per user.');
+            $this->assertLessThanOrEqual(
+                1,
+                $pending,
+                'There must never be more than one pending request per user.'
+            );
         }
     }
 
@@ -118,8 +126,11 @@ final class manager_test extends \advanced_testcase {
         for ($i = 0; $i < 5; $i++) {
             manager::validate_token($user->id, 'wrongtoken' . str_repeat('0', 30));
             $current = (int) manager::get_pending_request($user->id)->attemptsleft;
-            $this->assertSame($previous - 1, $current,
-                'Each failed attempt must decrement attemptsleft by exactly 1.');
+            $this->assertSame(
+                $previous - 1,
+                $current,
+                'Each failed attempt must decrement attemptsleft by exactly 1.'
+            );
             $previous = $current;
         }
     }
@@ -172,17 +183,17 @@ final class manager_test extends \advanced_testcase {
     public function test_property_state_machine_validity(): void {
         global $DB;
 
-        // pending -> verified.
+        // Pending to verified.
         [$u1, $r1] = $this->make_request('a@example.com', 'a2@example.com');
         manager::mark_verified($r1);
         $this->assertSame('verified', $DB->get_record(manager::TABLE, ['id' => $r1->id])->status);
 
-        // pending -> cancelled.
+        // Pending to cancelled.
         [$u2, $r2] = $this->make_request('b@example.com', 'b2@example.com');
         manager::cancel_request($r2->id, 'user_cancelled');
         $this->assertSame('cancelled', $DB->get_record(manager::TABLE, ['id' => $r2->id])->status);
 
-        // pending -> expired.
+        // Pending to expired.
         [$u3, $r3] = $this->make_request('c@example.com', 'c2@example.com');
         manager::mark_expired($r3);
         $this->assertSame('expired', $DB->get_record(manager::TABLE, ['id' => $r3->id])->status);
@@ -226,8 +237,11 @@ final class manager_test extends \advanced_testcase {
         $result = manager::intercept_email_change($user->id, 'old@example.com', 'new@example.com');
         $this->assertNull($result, 'Disabled plugin must not intercept.');
         $this->assertSame(0, $DB->count_records(manager::TABLE, ['userid' => $user->id]));
-        $this->assertSame('new@example.com', get_user_preferences('newemail', '', $user->id),
-            'Disabled plugin must leave the core newemail preference intact.');
+        $this->assertSame(
+            'new@example.com',
+            get_user_preferences('newemail', '', $user->id),
+            'Disabled plugin must leave the core newemail preference intact.'
+        );
     }
 
     /**
@@ -256,8 +270,10 @@ final class manager_test extends \advanced_testcase {
         manager::validate_token($user->id, 'wrong' . str_repeat('0', 35));
         manager::validate_token($user->id, 'wrong' . str_repeat('1', 35));
 
-        $this->assertNull(manager::get_pending_request($user->id),
-            'Request must be cancelled once attempts are exhausted.');
+        $this->assertNull(
+            manager::get_pending_request($user->id),
+            'Request must be cancelled once attempts are exhausted.'
+        );
         $this->assertSame('cancelled', $DB->get_record(manager::TABLE, ['id' => $request->id])->status);
     }
 
