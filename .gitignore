@@ -1,0 +1,9 @@
+# Moodle plugin CI / local artefacts
+/moodle/
+/ci/
+/vendor/
+/node_modules/
+/.idea/
+/.vscode/
+*.log
+*.tmp
