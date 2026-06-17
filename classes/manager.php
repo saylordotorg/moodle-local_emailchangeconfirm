@@ -181,7 +181,7 @@ class manager {
         $DB->delete_records('user_private_key', ['script' => self::KEYSCRIPT, 'userid' => $userid]);
 
         if ($suppresscurrentrequest) {
-            // user/edit.php checks this again immediately before sending the native new-email message.
+            // User/edit.php checks this again immediately before sending the native new-email message.
             $CFG->emailchangeconfirmation = 0;
         }
     }

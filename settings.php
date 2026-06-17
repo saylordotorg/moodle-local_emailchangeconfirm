@@ -76,5 +76,4 @@ if ($hassiteconfig) {
         get_string('setting_notify_completion_desc', 'local_emailchangeconfirm'),
         1
     ));
-
 }
