@@ -40,7 +40,6 @@ final class observer_test extends \advanced_testcase {
         set_config('verification_window', 30, 'local_emailchangeconfirm');
         set_config('max_attempts', 3, 'local_emailchangeconfirm');
         set_config('notify_completion', 1, 'local_emailchangeconfirm');
-        set_config('require_mfa', 0, 'local_emailchangeconfirm');
     }
 
     /**
@@ -51,7 +50,10 @@ final class observer_test extends \advanced_testcase {
      * @return void
      */
     private function trigger_core_email_change(\stdClass $user, string $newemail): void {
+        $this->setUser($user);
+
         // This mirrors what user/edit.php does before firing user_updated.
+        create_user_key(manager::KEYSCRIPT, $user->id, null, null, time() + 600);
         set_user_preference('newemail', $newemail, $user->id);
         set_user_preference('newemailattemptsleft', 3, $user->id);
 
@@ -67,7 +69,7 @@ final class observer_test extends \advanced_testcase {
      * @return void
      */
     public function test_full_interception_flow(): void {
-        global $DB;
+        global $CFG, $DB;
         $user = $this->getDataGenerator()->create_user(['email' => 'old@example.com']);
 
         $this->trigger_core_email_change($user, 'new@example.com');
@@ -79,6 +81,78 @@ final class observer_test extends \advanced_testcase {
 
         // Core flow must have been suppressed.
         $this->assertSame('', get_user_preferences('newemail', '', $user->id));
+        $this->assertFalse($DB->record_exists(
+            'user_private_key',
+            ['script' => manager::KEYSCRIPT, 'userid' => $user->id]
+        ));
+        $this->assertSame(0, (int)$CFG->emailchangeconfirmation);
+    }
+
+    /**
+     * Hook interception suppresses the native core send before user/edit.php resumes.
+     *
+     * @return void
+     */
+    public function test_before_user_updated_hook_intercepts_core_flow(): void {
+        global $CFG, $DB;
+
+        $user = $this->getDataGenerator()->create_user(['email' => 'old@example.com']);
+        $this->setUser($user);
+
+        create_user_key(manager::KEYSCRIPT, $user->id, null, null, time() + 600);
+        set_user_preference('newemail', 'new@example.com', $user->id);
+        set_user_preference('newemailattemptsleft', 3, $user->id);
+
+        $usernew = clone($user);
+        $usernew->email = 'new@example.com';
+        $hook = new \core_user\hook\before_user_updated(
+            user: $usernew,
+            currentuserdata: $user,
+        );
+
+        hook_callbacks::before_user_updated($hook);
+
+        $request = manager::get_pending_request($user->id);
+        $this->assertNotNull($request);
+        $this->assertSame('old@example.com', $request->oldemail);
+        $this->assertSame('new@example.com', $request->newemail);
+        $this->assertSame('old@example.com', $usernew->email);
+        $this->assertSame('', get_user_preferences('newemail', '', $user->id));
+        $this->assertSame('', get_user_preferences('newemailattemptsleft', '', $user->id));
+        $this->assertFalse($DB->record_exists(
+            'user_private_key',
+            ['script' => manager::KEYSCRIPT, 'userid' => $user->id]
+        ));
+        $this->assertSame(0, (int)$CFG->emailchangeconfirmation);
+    }
+
+    /**
+     * Admin email changes bypass user confirmation and cancel stale pending requests.
+     *
+     * @return void
+     */
+    public function test_admin_override_cancels_pending_request(): void {
+        global $DB;
+
+        $user = $this->getDataGenerator()->create_user(['email' => 'old@example.com']);
+        $request = manager::intercept_email_change($user->id, 'old@example.com', 'pending@example.com');
+
+        set_config('emailchangeconfirmation', 1);
+        $this->setAdminUser();
+
+        $usernew = clone($user);
+        $usernew->email = 'adminset@example.com';
+        $hook = new \core_user\hook\before_user_updated(
+            user: $usernew,
+            currentuserdata: $user,
+        );
+
+        hook_callbacks::before_user_updated($hook);
+
+        $this->assertSame('adminset@example.com', $usernew->email);
+        $this->assertNull(manager::get_pending_request($user->id));
+        $this->assertSame('cancelled', $DB->get_field(manager::TABLE, 'status', ['id' => $request->id]));
+        $this->assertSame('', get_user_preferences(manager::PREF_PENDING, '', $user->id));
     }
 
     /**

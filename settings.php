@@ -77,11 +77,4 @@ if ($hassiteconfig) {
         1
     ));
 
-    // Require MFA re-authentication.
-    $settings->add(new admin_setting_configcheckbox(
-        'local_emailchangeconfirm/require_mfa',
-        get_string('setting_require_mfa', 'local_emailchangeconfirm'),
-        get_string('setting_require_mfa_desc', 'local_emailchangeconfirm'),
-        0
-    ));
 }

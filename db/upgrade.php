@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Event observer registration for local_emailchangeconfirm.
+ * Upgrade steps for local_emailchangeconfirm.
  *
  * @package    local_emailchangeconfirm
  * @copyright  2026 Saylor Academy
@@ -24,10 +24,29 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$observers = [
-    [
-        'eventname' => '\core\event\user_updated',
-        'callback'  => '\local_emailchangeconfirm\observer::user_updated',
-        'internal'  => true,
-    ],
-];
+/**
+ * Execute local_emailchangeconfirm upgrade steps.
+ *
+ * @param int $oldversion
+ * @return bool
+ */
+function xmldb_local_emailchangeconfirm_upgrade($oldversion) {
+    global $DB;
+
+    $dbman = $DB->get_manager();
+
+    if ($oldversion < 2026061700) {
+        $table = new xmldb_table('local_emailchangeconfirm_requests');
+        $field = new xmldb_field('mfaverified', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'attemptsleft');
+
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        unset_config('require_mfa', 'local_emailchangeconfirm');
+
+        upgrade_plugin_savepoint(true, 2026061700, 'local', 'emailchangeconfirm');
+    }
+
+    return true;
+}

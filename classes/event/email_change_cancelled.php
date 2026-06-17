@@ -39,7 +39,7 @@ class email_change_cancelled extends \core\event\base {
      * Build an event instance from a request record.
      *
      * @param \stdClass $request
-     * @param string $reason One of user_cancelled, token_expired, max_attempts_exceeded.
+     * @param string $reason One of user_cancelled, token_expired, max_attempts_exceeded, admin_override.
      * @return \core\event\base
      */
     public static function create_from_request(\stdClass $request, string $reason = 'user_cancelled'): \core\event\base {

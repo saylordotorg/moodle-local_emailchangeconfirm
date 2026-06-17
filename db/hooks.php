@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Event observer registration for local_emailchangeconfirm.
+ * Hook callback registration for local_emailchangeconfirm.
  *
  * @package    local_emailchangeconfirm
  * @copyright  2026 Saylor Academy
@@ -24,10 +24,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$observers = [
+$callbacks = [
     [
-        'eventname' => '\core\event\user_updated',
-        'callback'  => '\local_emailchangeconfirm\observer::user_updated',
-        'internal'  => true,
+        'hook' => \core_user\hook\before_user_updated::class,
+        'callback' => \local_emailchangeconfirm\hook_callbacks::class . '::before_user_updated',
+    ],
+    [
+        'hook' => \core\hook\output\before_footer_html_generation::class,
+        'callback' => \local_emailchangeconfirm\hook_callbacks::class . '::before_footer_html_generation',
     ],
 ];

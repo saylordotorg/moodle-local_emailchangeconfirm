@@ -129,7 +129,7 @@ class manager {
         self::delete_requests_for_user($userid);
 
         // Cancel the core flow that user/edit.php just initiated.
-        self::suppress_core_flow($userid);
+        self::suppress_core_flow($userid, true);
 
         $now = time();
         $token = self::generate_token();
@@ -141,7 +141,6 @@ class manager {
         $request->tokenhash = self::hash_token($token);
         $request->status = 'pending';
         $request->attemptsleft = self::get_max_attempts();
-        $request->mfaverified = 0;
         $request->timecreated = $now;
         $request->timeexpires = $now + self::get_window_seconds();
         $request->timeverified = null;
@@ -168,12 +167,23 @@ class manager {
      * Remove the core email-change preferences and key, suppressing the core flow.
      *
      * @param int $userid
+     * @param bool $suppresscurrentrequest Whether to suppress core's in-memory send flag for this request.
      * @return void
      */
-    public static function suppress_core_flow(int $userid): void {
+    public static function suppress_core_flow(int $userid, bool $suppresscurrentrequest = false): void {
+        global $CFG, $DB;
+
         unset_user_preference('newemail', $userid);
         unset_user_preference('newemailattemptsleft', $userid);
         delete_user_key(self::KEYSCRIPT, $userid);
+
+        // Backstop the Moodle API call above so any already-created native key cannot remain usable.
+        $DB->delete_records('user_private_key', ['script' => self::KEYSCRIPT, 'userid' => $userid]);
+
+        if ($suppresscurrentrequest) {
+            // user/edit.php checks this again immediately before sending the native new-email message.
+            $CFG->emailchangeconfirmation = 0;
+        }
     }
 
     /**
@@ -250,7 +260,7 @@ class manager {
      * @return void
      */
     public static function resume_core_flow(\stdClass $request): void {
-        global $CFG, $DB, $OUTPUT;
+        global $CFG, $DB;
 
         $user = $DB->get_record('user', ['id' => $request->userid], '*', MUST_EXIST);
 

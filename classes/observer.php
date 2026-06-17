@@ -28,8 +28,8 @@ class observer {
      * Handle the core user_updated event.
      *
      * Two responsibilities:
-     *  1. Interception: when the core flow has just set the 'newemail' preference,
-     *     intercept it and require old-email verification instead.
+     *  1. Fallback interception: when the core flow has just set the 'newemail'
+     *     preference, intercept it and require old-email verification instead.
      *  2. Completion: when a previously verified request's new email is now the
      *     user's live email, send the completion security notification.
      *
@@ -89,7 +89,7 @@ class observer {
         // Users who can update profiles directly are not subject to interception
         // (core already bypasses confirmation for them, but guard regardless).
         $systemcontext = \context_system::instance();
-        if (has_capability('moodle/user:update', $systemcontext, $userid)) {
+        if (has_capability('moodle/user:update', $systemcontext)) {
             return;
         }
 

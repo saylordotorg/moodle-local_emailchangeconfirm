@@ -45,7 +45,6 @@ final class manager_test extends \advanced_testcase {
         set_config('verification_window', 30, 'local_emailchangeconfirm');
         set_config('max_attempts', 3, 'local_emailchangeconfirm');
         set_config('notify_completion', 1, 'local_emailchangeconfirm');
-        set_config('require_mfa', 0, 'local_emailchangeconfirm');
     }
 
     /**
@@ -105,10 +104,24 @@ final class manager_test extends \advanced_testcase {
      * @return void
      */
     public function test_property_interception_completeness(): void {
-        [$user, $request] = $this->make_request();
+        global $CFG, $DB;
+        set_config('emailchangeconfirmation', 1);
+
+        $user = $this->getDataGenerator()->create_user(['email' => 'old@example.com']);
+        create_user_key(manager::KEYSCRIPT, $user->id, null, null, time() + 600);
+        set_user_preference('newemail', 'new@example.com', $user->id);
+        set_user_preference('newemailattemptsleft', 3, $user->id);
+
+        $request = manager::intercept_email_change($user->id, 'old@example.com', 'new@example.com');
+
         $this->assertSame('pending', $request->status);
         $this->assertSame('', get_user_preferences('newemail', '', $user->id));
         $this->assertSame('', get_user_preferences('newemailattemptsleft', '', $user->id));
+        $this->assertFalse($DB->record_exists(
+            'user_private_key',
+            ['script' => manager::KEYSCRIPT, 'userid' => $user->id]
+        ));
+        $this->assertSame(0, (int)$CFG->emailchangeconfirmation);
     }
 
     /**
